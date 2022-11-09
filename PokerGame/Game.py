@@ -72,56 +72,144 @@ class Game(object):
     def show_value(self):
         return f"{self.value}"
 
-    def hand_ranking(self):
-        player_community_cards = Player.cards, self.cards
-        all_possible_combi = itertools.combinations(player_community_cards, 5)
-        score1 = 0
-        score2 = 0
+    def hand_ranking(game, player):
+        player_community_cards_object = player.cards + game.cards
+        all_possible_5_card_combination = list(itertools.combinations(player_community_cards_object, 5))
+        low_value_cards = []
+        all_possible_scores_array = []
 
-        for i in all_possible_combi:
+
+        for i in all_possible_5_card_combination:
             suit_list = []
             value_list = []
-            for card in i :
+            for card in i:
                 suit_list.append(card.suit)
                 value_list.append(card.value)
+            value_counter = dict(Counter(value_list))
+            score1 = 0
+            score2 = 0
+            score3 = 0
+            score4 = 0
+            score5 = 0
+            score6 = 0
+            score7 = 0
+            score8 = 0
 
-        value_counter = dict(Counter(value_list))
-        suit_counter = dict(Counter(suit_list))
-        value_sorted_set = sorted(set(int(value_list)))
+            #2 of a kind, 1
+            pair_values = []
+            pair_value = int
+            pair_present = False
+            for v, count in value_counter.items():
+                if count == 2:
+                    pair_values.append(v)
+                    pair_value = v
+                    pair_present = True
 
-        #2 of a kind, 1
-        pair_values = []
-        pair_value = int
-        pair_present = False
-        for v, count in value_counter.items():
-            if count == 2:
-                pair_values.append(v)
-                pair_value = v
-                pair_present = True
+            if pair_present:
+                for v in value_list:
+                    if v not in pair_values:
+                        low_value_cards.append(v)
 
-    #3 of a kind, 2
-        three_pair_value = int
-        three_pair_present = False
-        for v, count in value_counter.items():
-            if count == 3:
-                three_pair_value = v
-                three_pair_present = True
+                low_value_cards = list(reversed(sorted(low_value_cards)))
+                if len(pair_values) == 1:
+                    score1 = 1
+                    score2 = pair_value
+                    try:
+                        score3 = low_value_cards.pop(0)
+                        score4 = low_value_cards.pop(0)
+                        score5 = low_value_cards.pop(0)
+                        score6 = low_value_cards.pop(0)
+                        score7 = low_value_cards.pop(0)
+                        score8 = low_value_cards.pop(0)
+                    except IndexError:
+                        pass
+        
+                if len(set(pair_values)) == 2:
+                    pair_values = list(reversed(sorted(pair_values)))
+                    score1 = 2
+                    score2 = pair_values.pop(0)
+                    score3 = pair_values.pop(0)
+                    try:
+                        score4 = low_value_cards.pop(0)
+                        score5 = low_value_cards.pop(0)
+                        score6 = low_value_cards.pop(0)
+                        score7 = low_value_cards.pop(0)
+                        score8 = low_value_cards.pop(0)                    
+                    except IndexError:
+                        pass
 
-    #straight, 3
-#    for i in range(len(value_sorted_set)):
- #       for card in value_sorted_set:
-  #         if card[i] - card[i-1] == 1 and card[i-1] - card[i-2] == 1 and card[i-2] - card[i-3] == 1 and card[i-3] - card[i-4] == 1:
-   #             print('straight')
 
-    #flush, 4
-    #full house, 5
-    #4 of a kind, 6
-        four_pair_value = int
-        four_pair_present = False
-        for v, count in value_counter.items():
-            if count == 4:
-                four_pair_value = v
-                four_pair_present = True
+                #3 of a kind, 2
+                three_pair_value = int
+                three_pair_present = False
+                for v, count in value_counter.items():
+                    if count == 3:
+                        three_pair_value = v
+                        three_pair_present = True
+                        score1 = 3
+                        score2 = three_pair_value
+                        if three_pair_present:
+                            for v in value_list:
+                                if v != three_pair_value:
+                                    low_value_cards.append(v)
+                                    low_value_cards = reversed(sorted(low_value_cards))
+                                    try:
+                                        score3 = low_value_cards.pop(0)
+                                        score4 = low_value_cards.pop(0)
+                                        score5 = low_value_cards.pop(0)
+                                        score6 = low_value_cards.pop(0)
+                                        score7 = low_value_cards.pop(0)
+                                        score8 = low_value_cards.pop(0)   
+                                    except IndexError:
+                                        pass
 
-    #straight flush, 7
-    #royal flush, 8
+                    #straight, 3 
+                straight_present = False
+                if sorted(value_list) == list(range(min(value_list), max(value_list) + 1)):
+                    straight_present = True
+                    score1 = 4
+                    score2 = max(value_list)
+
+                    #flush, 4
+                flush_present = False
+                if len(set(suit_list)) == 1:
+                    flush_present = True
+                    score1 = 5
+                    score2 = max(value_list)
+            
+                    #full house, 5
+                if pair_present and three_pair_present:
+                    score1 = 6
+                    score2 = three_pair_value
+                    score3 = pair_value
+
+                    #4 of a kind, 6
+                four_pair_value = int
+                four_pair_present = False
+                for v, count in value_counter.items():
+                    if count == 4:
+                        four_pair_value = v
+                        four_pair_present = True
+                        score1 = 7
+                        score2 = four_pair_value
+                        for v in four_pair_value:
+                            if v not in four_pair_value:
+                                low_value_cards.append(v)
+                                low_value_cards = reversed(sorted(low_value_cards))
+                                try:
+                                    score3 = low_value_cards.pop(0)
+                                    score4 = low_value_cards.pop(0)
+                                    score5 = low_value_cards.pop(0)
+                                except IndexError:
+                                    pass
+                
+                    #straight flush, 7
+                if straight_present and flush_present:
+                    score1 = 8
+                    score2 = max(value_list)
+                    #royal flush, 8
+                if flush_present and value_list == [11, 12, 13, 14, 15]:
+                    score1 = 9
+
+            all_possible_scores_array.append([score1, score2, score3, score4, score5, score6, score7, score8])
+        return all_possible_scores_array
