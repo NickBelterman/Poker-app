@@ -8,23 +8,59 @@ class Game(object):
     def __init__(self, name, list_of_players):
         self.game_over = False
         self.need_raise = False
-        self.active_player = Player("a")
-        self.possible_actions = []
+        self.active_player = Player("Hubert")
+        self.possible_action = []
         self.cards = []
         self.pot = 0
         self.pot_dict = {}
         self.list_of_players = []
-        self.dealer = Player('a')
-        self.small_blind = Player('a')
-        self.big_blind = Player('a')
-        self.first_actor = Player('a')
+        self.dealer = Player('Nick')
+        self.small_blind = Player('Anne')
+        self.big_blind = Player('Sara')
+        self.first_actor = Player('Wout')
         self.winners = []
         self.deck = Deck()
         self.score_of_possible_winners = []
         self.players_not_out = list(list_of_players)
-        
+
+    def create_list_of_player(self):
+        player_names = []
+        q = int(input('Enter amount of players'))
+        if q >=9 or q <= 1:
+            raise ValueError
+        else:
+            for i in range(0, q):
+                player_names.append(input(f'Enter player {i+1} name'))
+
+            for i in range(len(player_names)):
+                self.list_of_players.append(Player(player_names[i]))
+
+    def check_apply_settings(self):
+        smallblind_amount = int(input('Small blind amount'))
+        bigblind_amount = smallblind_amount*2
+        chip_amount = int(input('Chip amount'))
+
+        if chip_amount <= 0 or smallblind_amount >= chip_amount:
+            raise ValueError
+        else:
+            Player.chips = chip_amount
+            self.pot_dict['sb_stake'] = smallblind_amount
+            self.pot_dict['bb_stake'] = bigblind_amount
+
+    def possible_actions(self):
+        if self.active_player.chips == 0:
+            self.possible_action.append('None')
+        else:
+            for player in self.players_not_out:
+                self.possible_action.append('fold')
+            if self.active_player.stake_gap == 0:
+                self.possible_action.append('check')
+            if self.active_player.stake_gap != 0:
+                self.possible_action.append('call')
+            self.possible_action.append('raise')
+
     def show_comunity_cards(self):
-        print('Comunity cards: {}'.format(self.cards))
+        print(f'Comunity cards: {self.cards}')
     
     def shuffle_deck(self):
         self.deck.shuffle()
@@ -48,23 +84,23 @@ class Game(object):
         self.deck.burn()
         self.deck.deal(self, 1)
         
-    def establish_player_attr(list_players_in_game):
+    def establish_player_attr(self):
         index_assignment = 0
-        dealer = list_players_in_game[index_assignment]
-        dealer.special_attr.append('dealer')
+        self.first_actor = self.players_not_out[index_assignment]
+        self.first_actor.special_attr.append('first actor')
         index_assignment += 1
-        index_assignment %= len(list_players_in_game)
-        small_blind = list_players_in_game[index_assignment]
-        small_blind.special_attr.append('small blind')
+        index_assignment %= len(self.players_not_out)
+        self.small_blind = self.players_not_out[index_assignment]
+        self.small_blind.special_attr.append('small blind')
         index_assignment += 1
-        index_assignment %= len(list_players_in_game)
-        big_blind = list_players_in_game[index_assignment]
-        big_blind.special_attr.append('big blind')
+        index_assignment %= len(self.players_not_out)
+        self.big_blind = self.players_not_out[index_assignment]
+        self.big_blind.special_attr.append('big blind')
         index_assignment += 1
-        index_assignment %= len(list_players_in_game)
-        first_actor = list_players_in_game[index_assignment]
-        first_actor.special_attr.append('first actor')
-        list_players_in_game.append(list_players_in_game.pop(0))
+        index_assignment %= len(self.players_not_out)
+        self.dealer = self.players_not_out[index_assignment]
+        self.dealer.special_attr.append('dealer')
+        self.players_not_out.append(self.players_not_out.pop(0))
 
     def show_suit(self):
         return f"{self.suit}"
@@ -72,8 +108,8 @@ class Game(object):
     def show_value(self):
         return f"{self.value}"
 
-    def hand_ranking(game, player):
-        player_community_cards_object = player.cards + game.cards
+    def hand_ranking(self, player):
+        player_community_cards_object = player.cards + self.cards
         all_possible_5_card_combination = list(itertools.combinations(player_community_cards_object, 5))
         low_value_cards = []
         all_possible_scores_array = []
@@ -212,4 +248,30 @@ class Game(object):
                     score1 = 9
 
             all_possible_scores_array.append([score1, score2, score3, score4, score5, score6, score7, score8])
-        return all_possible_scores_array
+        best_score = max(all_possible_scores_array)
+        player.score = best_score
+
+    def score_all_players(self):
+        for player in self.players_not_out:
+            self.hand_ranking(self, player)
+
+    def check_(self):
+        pass
+
+    def call_(self):
+        pass
+
+    def raise_(self):
+        pass
+
+    def allin_(self):
+        pass
+    
+    def fold_(self):
+        pass
+
+    def roundinfo(self):
+        pass
+
+    def act_one(self):
+        pass
